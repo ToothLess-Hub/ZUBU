@@ -2004,10 +2004,6 @@ local Tabs = {
         Title = "Raid",
         Icon = ""
     }),
-    R2 = Window:AddTab({
-        Title = "Raid Other",
-        Icon = ""
-    }),
     Combat = Window:AddTab({
         Title = "Combat PVP",
         Icon = ""
@@ -2030,7 +2026,7 @@ local Tabs = {
     })
 }
 Tabs.Info:AddButton({
-        Title="Zubuu's Comunity",
+        Title="Zubuu's Comunity,
         Description="Discord",
         Callback=function()
             setclipboard(tostring("https://discord.gg/rh6nS68d")) 
@@ -2038,7 +2034,7 @@ Tabs.Info:AddButton({
 })
 
 Tabs.Info:AddButton({
-    Title="Zubu Creator",
+    Title="Zubuu Creator",
     Description="Youtube",
     Callback=function()
         setclipboard(tostring("https://www.youtube.com/@zubu-quynhcte"))
@@ -2048,7 +2044,7 @@ Tabs.Info:AddButton({
     Title="Quynh Ctee",
     Description="Facebook",
     Callback=function()
-        setclipboard(tostring("https://www.facebook.com/profile.php?id=61582302022952"))
+        setclipboard(tostring("https://www.youtube.com/@zubu-quynhcte"))
     end
 })
 Tabs.Info:AddParagraph({
@@ -2072,13 +2068,13 @@ Tabs.Info:AddParagraph({
     Content="Script supports pc and pe"
 })
 Tabs.Info:AddParagraph({
-    Title="Clients Android No Supported",
-    Content="Support All"
+    Title="Clients Android Unsuppported",
+    Content="No Clients Android Unsupported"
 })
 Tabs.Info:AddParagraph({
-    Title="Clients PC No Supported",
+    Title="Clients PC Unsupported",
     Content="Xeno Executor\nSolara Executor"
-})  
+})
 local FarmLevel = Tabs.Main:AddToggle("FarmLevel", {
     Title = "Auto Farm Level",
     Description = "",
@@ -8765,25 +8761,54 @@ local Q = Tabs.Raids:AddToggle("Q", {
     Description = "",
     Default = false
 })
+
 Q:OnChanged(function(Value)
     NextIs = Value
+    if not Value then
+        _G.AutoNear = false
+    end
 end)
+
 spawn(function()
-    while wait(Sec) do
+    local visitedIslands = {}
+
+    while task.wait() do
         if NextIs then
-            if plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible == true then
-                if workspace["_WorldOrigin"].Locations:FindFirstChild("Island 5") then
-                    _tp(workspace["_WorldOrigin"].Locations:FindFirstChild("Island 5").CFrame * CFrame.new(0, 50, 100))
-                elseif workspace["_WorldOrigin"].Locations:FindFirstChild("Island 4") then
-                    _tp(workspace["_WorldOrigin"].Locations:FindFirstChild("Island 4").CFrame * CFrame.new(0, 50, 100))
-                elseif workspace["_WorldOrigin"].Locations:FindFirstChild("Island 3") then
-                    _tp(workspace["_WorldOrigin"].Locations:FindFirstChild("Island 3").CFrame * CFrame.new(0, 50, 100))
-                elseif workspace["_WorldOrigin"].Locations:FindFirstChild("Island 2") then
-                    _tp(workspace["_WorldOrigin"].Locations:FindFirstChild("Island 2").CFrame * CFrame.new(0, 50, 100))
-                elseif workspace["_WorldOrigin"].Locations:FindFirstChild("Island 1") then
-                    _tp(workspace["_WorldOrigin"].Locations:FindFirstChild("Island 1").CFrame * CFrame.new(0, 50, 100))
+            pcall(function()
+                local plr = game.Players.LocalPlayer
+                local char = plr.Character
+                local locations = workspace["_WorldOrigin"].Locations
+
+                if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+                if not plr.PlayerGui.Main.TopHUDList.RaidTimer.Visible then return end
+
+                local pos = char.HumanoidRootPart.Position
+
+                -- Reset khi bắt đầu raid mới
+                if (pos - Vector3.new(-6438.73535, 250.645355, -4501.50684)).Magnitude < 5 or
+                   (pos - Vector3.new(-5017.40869, 314.844055, -2823.0127)).Magnitude < 5 then
+                    visitedIslands = {}
                 end
-            end
+
+                if locations:FindFirstChild("Island 1") then
+                    _G.AutoNear = true
+                end
+
+                local function GoIsland(name)
+                    local isl = locations:FindFirstChild(name)
+                    if isl and not visitedIslands[name] then
+                        _tp(isl.CFrame * CFrame.new(0, 50, 100))
+                        visitedIslands[name] = true
+                        return true
+                    end
+                    return false
+                end
+
+                if GoIsland("Island 2") then return end
+                if GoIsland("Island 3") then return end
+                if GoIsland("Island 4") then return end
+                if GoIsland("Island 5") then return end
+            end)
         end
     end
 end)
@@ -8804,306 +8829,7 @@ spawn(function()
             end
         end)
     end
-end)
-local Chips = {"Flame","Ice","Quake","Light","Dark","Spider","Rumble","Magma","Buddha","Sand","Phoenix","Dough"}
-local DropdownRaid = Tabs.R2:AddDropdown("DropdownRaid", {
-    Title="Select Chip",
-    Description="",
-    Values=Chips,
-    Multi=false,
-    Default=1,
-})
-DropdownRaid:SetValue(SelectChip)
-DropdownRaid:OnChanged(function(Value)
-    SelectChip=Value
-end)
-local ToggleBuy = Tabs.R2:AddToggle("ToggleBuy", {Title="Buy Chip", Description="",Default=false })
-ToggleBuy:OnChanged(function(Value)
-    _G.Auto_Buy_Chips_Dungeon=Value
-end)
-Options.ToggleBuy:SetValue(false)
-spawn(function()
-    while wait() do
-        if _G.Auto_Buy_Chips_Dungeon then
-            pcall(function()
-                local args = {
-                    [1]="RaidsNpc",
-                    [2]="Select",
-                    [3]=SelectChip
-                }
-                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-            end)
-        end
-    end
-end)
-local ToggleStart = Tabs.R2:AddToggle("ToggleStart", {Title="Star Raid",Description="", Default=false })
-ToggleStart:OnChanged(function(Value)
-    _G.Auto_StartRaid=Value
-end)
-Options.ToggleStart:SetValue(false)
-spawn(function()
-    while wait() do
-        pcall(function()
-            if _G.Auto_StartRaid then
-                if game:GetService("Players")["LocalPlayer"].PlayerGui.Main.Timer.Visible==false then
-                    if not game:GetService("Workspace")["_WorldOrigin"].Locations:FindFirstChild("Island 1") and
-                        (game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Special Microchip") or
-                         game:GetService("Players").LocalPlayer.Character:FindFirstChild("Special Microchip")) then
-                        if Sea2 then
-                            Tween2(CFrame.new(-6438.73535, 250.645355,-4501.50684))
-                            local args = {
-                                [1]="SetSpawnPoint"
-                            }
-                            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-                            fireclickdetector(game:GetService("Workspace").Map.CircleIsland.RaidSummon2.Button.Main.ClickDetector)
-                        elseif Sea3 then
-                            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(-5075.50927734375, 314.5155029296875,-3150.0224609375))
-                            Tween2(CFrame.new(-5017.40869, 314.844055,-2823.0127,-0.925743818, 4.48217499e-08,-0.378151238, 4.55503146e-09, 1, 1.07377559e-07, 0.378151238, 9.7681621e-08,-0.925743818))
-                        end
-                    end
-                end
-            end
-        end)
-    end
-end)
-local ToggleNextIsland = Tabs.R2:AddToggle("ToggleNextIsland", {
-    Title="Auto Fram Raid",
-    Description="",
-    Default=false
-})
-ToggleNextIsland:OnChanged(function(Value)
-    AutoNextIsland=Value
-    if not Value then
-        _G.AutoNear=false
-    end
-end)
-Options.ToggleNextIsland:SetValue(false)
-spawn(function()
-    local visitedIslands = {}
-    while task.wait() do
-        if AutoNextIsland then
-            pcall(function()
-                local character = game.Players.LocalPlayer.Character
-                if character and character:FindFirstChild("HumanoidRootPart") then
-                    local locations = game:GetService("Workspace")["_WorldOrigin"].Locations
-                    local pos = character.HumanoidRootPart.Position
-                    if (pos-Vector3.new(-6438.73535, 250.645355,-4501.50684)).Magnitude<1 or
-                       (pos-Vector3.new(-5017.40869, 314.844055,-2823.0127)).Magnitude<1 then
-                        visitedIslands={}  
-                    end
-                    if locations:FindFirstChild("Island 1") then
-                        _G.AutoNear=true
-                    end
-                    if locations:FindFirstChild("Island 2") and not visitedIslands["Island 2"] then
-                        Tween(locations:FindFirstChild("Island 2").CFrame)
-                        visitedIslands["Island 2"]=true
-                        AutoNextIsland=false
-                        wait()
-                        AutoNextIsland=true
-                    elseif locations:FindFirstChild("Island 3") and not visitedIslands["Island 3"] then
-                        Tween(locations:FindFirstChild("Island 3").CFrame)
-                        visitedIslands["Island 3"]=true
-                        AutoNextIsland=false
-                        wait()
-                        AutoNextIsland=true
-                    elseif locations:FindFirstChild("Island 4") and not visitedIslands["Island 4"] then
-                        Tween(locations:FindFirstChild("Island 4").CFrame)
-                        visitedIslands["Island 4"]=true
-                        AutoNextIsland=false
-                        wait()
-                        AutoNextIsland=true
-                    elseif locations:FindFirstChild("Island 5") and not visitedIslands["Island 5"] then
-                        Tween(locations:FindFirstChild("Island 5").CFrame)
-                        visitedIslands["Island 5"]=true
-                        AutoNextIsland=false
-                        wait()
-                        AutoNextIsland=true
-                    end
-                end
-            end)
-        end
-    end
-end)
-local ToggleAwake = Tabs.R2:AddToggle("ToggleAwake", {Title="Thá»©c Tá»‰nh",Description="", Default=false })
-ToggleAwake:OnChanged(function(Value)
-    AutoAwakenAbilities=Value
-end)
-Options.ToggleAwake:SetValue(false)
-spawn(function()
-    while task.wait() do
-        if AutoAwakenAbilities then
-            pcall(function()
-                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Awakener","Awaken")
-            end)
-        end
-    end
-end)
-local ToggleGetFruit = Tabs.R2:AddToggle("ToggleGetFruit", {Title="Collect Fruit 1M",Description="", Default=false })
-ToggleGetFruit:OnChanged(function(Value)
-    _G.Autofruit=Value
-end)
-spawn(function()
-    while wait() do
-        pcall(function()
-     if _G.Autofruit then
-local args = {
-    [1]="LoadFruit",
-    [2]="Rocket-Rocket"
-}
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-local args = {
-    [1]="LoadFruit",
-    [2]="Spin-Spin"
-}
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-local args = {
-    [1]="LoadFruit",
-    [2]="Chop-Chop"
-}
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-local args = {
-    [1]="LoadFruit",
-    [2]="Spring-Spring"
-}
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-local args = {
-    [1]="LoadFruit",
-    [2]="Bomb-Bomb"
-}
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-local args = {
-    [1]="LoadFruit",
-    [2]="Smoke-Smoke"
-}
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-local args = {
-    [1]="LoadFruit",
-    [2]="Spike-Spike"
-}
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-local args = {
-    [1]="LoadFruit",
-    [2]="Flame-Flame"
-}
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-local args = {
-    [1]="LoadFruit",
-    [2]="Falcon-Falcon"
-}
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-local args = {
-    [1]="LoadFruit",
-    [2]="Ice-Ice"
-}
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-local args = {
-    [1]="LoadFruit",
-    [2]="Sand-Sand"
-}
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-local args = {
-    [1]="LoadFruit",
-    [2]="Dark-Dark"
-}
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-local args = {
-    [1]="LoadFruit",
-    [2]="Ghost-Ghost"
-}
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-local args = {
-    [1]="LoadFruit",
-    [2]="Diamond-Diamond"
-}
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-local args = {
-    [1]="LoadFruit",
-    [2]="Light-Light"
-}
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-local args = {
-    [1]="LoadFruit",
-    [2]="Rubber-Rubber"
-}
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-local args = {
-    [1]="LoadFruit",
-    [2]="Barrier-Barrier"
-}
-game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-end
-end)
-end
-end)
-if Sea2 then
-Tabs.Main1:AddButton({
-    Title="Teleport Raid Sea 2",
-    Description="",
-    Callback=function()
-     Tween2(CFrame.new(-6438.73535, 250.645355,-4501.50684))
-end
-})
-elseif Sea3 then
-    Tabs.Main1:AddButton({
-        Title="Teleport Raid Sea 3",
-        Description="",
-        Callback=function()
-         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance",Vector3.new(-5075.50927734375, 314.5155029296875,-3150.0224609375))
-           Tween2(CFrame.new(-5017.40869, 314.844055,-2823.0127,-0.925743818, 4.48217499e-08,-0.378151238, 4.55503146e-09, 1, 1.07377559e-07, 0.378151238, 9.7681621e-08,-0.925743818))
-        end
-        })
-end
-local Mastery = Tabs.R2:AddSection("Teleport Raid Law")
-local ToggleLaw = Tabs.R2:AddToggle("ToggleLaw", {Title="Auto Raid Law",Description="", Default=false })
-ToggleLaw:OnChanged(function(Value)
-    Auto_Law=Value
-end)
-Options.ToggleLaw:SetValue(false)
-spawn(function()
-    pcall(function()
-        while wait() do
-            if Auto_Law then
-                if not game:GetService("Players").LocalPlayer.Character:FindFirstChild("Microchip") and not game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Microchip") and not game:GetService("Workspace").Enemies:FindFirstChild("Order") and not game:GetService("ReplicatedStorage"):FindFirstChild("Order") then
-                    wait()
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BlackbeardReward","Microchip","1")
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BlackbeardReward","Microchip","2")
-                end
-            end
-        end
-    end)
-end)
-spawn(function()
-    pcall(function()
-        while wait() do
-            if Auto_Law then
-                if not game:GetService("Workspace").Enemies:FindFirstChild("Order") and not game:GetService("ReplicatedStorage"):FindFirstChild("Order") then
-                    if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Microchip") or game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Microchip") then
-                        fireclickdetector(game:GetService("Workspace").Map.CircleIsland.RaidSummon.Button.Main.ClickDetector)
-                    end
-                end
-                if game:GetService("ReplicatedStorage"):FindFirstChild("Order") or game:GetService("Workspace").Enemies:FindFirstChild("Order") then
-                    if game:GetService("Workspace").Enemies:FindFirstChild("Order") then
-                        for i,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
-                            if v.Name=="Order" then
-                                repeat wait(_G.Fast_Delay)
-                                    AttackNoCoolDown()
-                                    AutoHaki()
-                                    EquipTool(SelectWeapon)
-                                    Tween(v.HumanoidRootPart.CFrame*Pos)
-                                    v.HumanoidRootPart.CanCollide=false
-                                    v.HumanoidRootPart.Size=Vector3.new(60, 60, 60)
-                                until not v.Parent or v.Humanoid.Health<=0 or Auto_Law==false
-                            end
-                        end
-                    elseif game:GetService("ReplicatedStorage"):FindFirstChild("Order") then
-                        Tween(CFrame.new(-6217.2021484375, 28.047645568848,-5053.1357421875))
-                    end
-                end
-            end
-        end
-    end)
-end)
-
+end)	
 Tabs.Combat:AddSection("Combat / Aimbot")
 __indexPlayer = Tabs.Combat:AddParagraph({
     Title = "All Players On Server :",
